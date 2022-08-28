@@ -62,12 +62,13 @@ pipeline {
 		stage('Backend') {
 			steps {
 				echo 'Checking Syntax ...'
+				sh 'docker pull nginxproxymanager/nginx-full:certbot-node'
 				// See: https://github.com/yarnpkg/yarn/issues/3254
 				sh '''docker run --rm \\
 					-v "$(pwd)/backend:/app" \\
 					-v "$(pwd)/global:/app/global" \\
 					-w /app \\
-					node:latest \\
+					nginxproxymanager/nginx-full:certbot-node \\
 					sh -c "yarn install && yarn eslint . && rm -rf node_modules"
 				'''
 
@@ -220,7 +221,7 @@ pipeline {
 	}
 	post {
 		always {
-			sh 'docker-compose down --rmi all --remove-orphans --volumes -t 30'
+			sh 'docker-compose down --remove-orphans --volumes -t 30'
 			sh 'echo Reverting ownership'
 			sh 'docker run --rm -v $(pwd):/data jc21/ci-tools chown -R $(id -u):$(id -g) /data'
 		}
